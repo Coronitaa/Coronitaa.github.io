@@ -1,0 +1,192 @@
+/* Same palette and type as the ReFix site this panel lives on; the teal accent is kept for the one
+   action that publishes, and for the current selection. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --panel: #131921;
+  --panel-2: #18202a;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text: #e8edf2;
+  --muted: #9aa6b2;
+  --accent: #2bd4a4;
+  --accent-ink: #062519;
+  --accent-soft: rgba(43, 212, 164, 0.12);
+  --danger: #ff7b72;
+  --warn-soft: rgba(255, 196, 87, 0.14);
+  --radius: 10px;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+  padding-bottom: 76px;
+}
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.92em; }
+h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
+h2 { font-size: 18px; margin: 0; }
+h3 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 22px 0 8px; }
+.hint { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+.empty { color: var(--muted); font-size: 14px; margin: 6px 0; }
+.error { color: var(--danger); margin: 8px 0 0; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row.end { justify-content: flex-end; }
+
+/* Controls */
+input, textarea, select {
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+}
+textarea { resize: vertical; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.btn {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-primary:hover { background: #45e0b5; border-color: #45e0b5; }
+.btn-quiet { background: transparent; border-color: transparent; color: var(--muted); padding: 6px 10px; }
+.btn-quiet:hover { color: var(--text); border-color: var(--line-strong); }
+.btn-danger { background: transparent; border-color: rgba(255, 123, 114, 0.5); color: var(--danger); }
+.danger-text { color: var(--danger); }
+
+/* Header */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px clamp(14px, 3vw, 28px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 800; letter-spacing: 0.12em; color: var(--accent); }
+.brand-sub { color: var(--muted); font-weight: 600; letter-spacing: 0.04em; margin-left: 4px; }
+.session { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+
+/* Login */
+.login { width: min(620px, 92vw); margin: 8vh auto 0; }
+.lead { color: var(--muted); font-size: 16px; margin: 0 0 28px; }
+.login-form { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+.login-form .row { margin-top: 16px; }
+
+/* Layout: list and editor side by side, stacked on narrow screens */
+.app {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  min-height: calc(100vh - 60px);
+}
+.games { border-right: 1px solid var(--line); padding: 18px 16px; }
+.editor { padding: 22px clamp(16px, 3vw, 36px) 40px; max-width: 1000px; }
+.back { display: none; margin-bottom: 8px; }
+
+.add-form { margin-bottom: 18px; }
+.add-form .row { flex-wrap: nowrap; }
+.list-tools { display: grid; gap: 8px; margin-bottom: 10px; }
+.seg { display: flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.seg button {
+  flex: 1; background: transparent; color: var(--muted); border: 0; padding: 6px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--text); }
+
+.game-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.game-item {
+  width: 100%; display: flex; gap: 10px; align-items: center; text-align: left;
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius);
+  padding: 6px; color: inherit; font: inherit; cursor: pointer;
+}
+.game-item:hover { background: var(--panel); }
+.game-item[aria-current="true"] { background: var(--accent-soft); border-color: rgba(43, 212, 164, 0.35); }
+.game-item img { width: 92px; height: 43px; object-fit: cover; border-radius: 5px; background: var(--panel-2); flex: none; }
+.game-meta { display: grid; min-width: 0; flex: 1; }
+.game-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.game-sub { color: var(--muted); font-size: 12.5px; font-family: var(--mono); }
+.tag { font-size: 11.5px; font-weight: 700; border-radius: 5px; padding: 1px 6px; flex: none; }
+.tag-hidden { background: var(--warn-soft); color: #ffc457; }
+
+/* Editor */
+.editor-empty { color: var(--muted); padding-top: 12vh; max-width: 420px; }
+.editor-empty h2 { color: var(--text); margin-bottom: 6px; }
+.editor-head { display: grid; grid-template-columns: minmax(0, 300px) 1fr; gap: 20px; align-items: start; margin-bottom: 22px; }
+.header-preview { width: 100%; height: auto; aspect-ratio: 460 / 215; object-fit: cover; border-radius: var(--radius); background: var(--panel-2); }
+.appid { margin: 0 0 12px; color: var(--muted); font-family: var(--mono); }
+.switch { display: flex; align-items: center; gap: 10px; font-size: 15px; cursor: pointer; margin: 0; }
+.switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+.field.wide { grid-column: 1 / -1; }
+.field.end { display: flex; align-items: end; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin: 34px 0 12px; }
+
+.presets { display: grid; gap: 16px; }
+.preset { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 18px; }
+.preset:first-child { border-color: rgba(43, 212, 164, 0.35); }
+.preset-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.preset-num { font-size: 13px; font-weight: 700; color: var(--muted); }
+.preset:first-child .preset-num { color: var(--accent); }
+.preset .field + .field { margin-top: 0; }
+.preset > .field { margin-top: 18px; }
+
+.pairs { display: grid; gap: 6px; justify-items: start; }
+.pair { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 6px; width: 100%; }
+.mods { display: grid; gap: 10px; justify-items: start; }
+.mod { width: 100%; padding: 10px 0; border-top: 1px solid var(--line); }
+.danger-zone { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+/* Publish bar: the one place the accent fills a button */
+.publish-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px clamp(14px, 3vw, 28px);
+  background: var(--panel); border-top: 1px solid var(--line-strong);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.dialog {
+  width: min(560px, 94vw); background: var(--panel); color: var(--text);
+  border: 1px solid var(--line-strong); border-radius: 14px; padding: 22px;
+}
+.dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.dialog h2 { margin-bottom: 12px; }
+.summary, .error-list { margin: 0 0 16px; padding-left: 18px; }
+.error-list { color: var(--danger); }
+.toast {
+  position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+  background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 8px;
+  padding: 10px 16px; margin: 0; max-width: 92vw;
+}
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; }
+  .games { border-right: 0; }
+  body.editing .games { display: none; }
+  body:not(.editing) .editor { display: none; }
+  .back { display: inline-block; }
+  .editor-head { grid-template-columns: 1fr; }
+  .pair { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active { transform: none; }
+}
+/* A header that failed to load (src removed by app.js) keeps its space but not the broken-image glyph. */
+img:not([src]) { visibility: hidden; }

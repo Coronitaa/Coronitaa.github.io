@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://shared.steamstatic.com https://cdn.steamstatic.com https://shared.cloudflare.steamstatic.com https://cdn.cloudflare.steamstatic.com https://shared.akamai.steamstatic.com https://cdn.akamai.steamstatic.com https://steamcdn-a.akamaihd.net https://raw.githubusercontent.com https://coronitaa.github.io; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>BlueStar · Panel de administración</title>
+<link rel="stylesheet" href="admin.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="top">
+  <span class="brand">BLUESTAR <span class="brand-sub">admin</span></span>
+  <div id="session" class="session" hidden>
+    <span id="session-user"></span>
+    <button type="button" id="logout" class="btn btn-quiet">Salir</button>
+  </div>
+</header>
+
+<main id="login" class="login" hidden>
+  <h1>Catálogo de BlueStar</h1>
+  <p class="lead">Desde aquí decides qué juegos aparecen en Explorar y qué versiones recomienda el instalador.
+    Cada cambio se guarda como un commit en <code>Coronitaa/Coronitaa.github.io</code>: solo una cuenta con permiso de escritura en ese repo puede publicar.</p>
+  <form id="login-form" class="login-form" autocomplete="off">
+    <label for="token">Token de GitHub</label>
+    <input id="token" name="token" type="password" spellcheck="false" autocomplete="off" required
+           placeholder="github_pat_…">
+    <p class="hint">Crea un <a href="https://github.com/settings/personal-access-tokens/new" rel="noopener noreferrer" target="_blank">token fine-grained</a>
+      con acceso solo al repo <code>Coronitaa.github.io</code>, permiso <b>Contents: Read and write</b> y caducidad corta.
+      Se guarda solo en esta pestaña y se borra al cerrarla.</p>
+    <p id="login-error" class="error" role="alert" hidden></p>
+    <div class="row">
+      <button type="submit" class="btn btn-primary">Entrar</button>
+      <button type="button" id="local-mode" class="btn btn-quiet" hidden>Probar en local sin GitHub</button>
+    </div>
+  </form>
+</main>
+
+<main id="app" class="app" hidden>
+  <aside class="games" aria-label="Juegos del catálogo">
+    <form id="add-form" class="add-form" autocomplete="off">
+      <label for="add-appid">Añadir juego por AppID de Steam</label>
+      <div class="row">
+        <input id="add-appid" inputmode="numeric" pattern="[0-9]+" placeholder="4465480" required>
+        <button type="submit" class="btn btn-primary">Añadir</button>
+      </div>
+    </form>
+    <div class="list-tools">
+      <input id="filter" type="search" placeholder="Buscar por nombre o AppID" aria-label="Buscar juegos">
+      <div class="seg" role="radiogroup" aria-label="Mostrar">
+        <button type="button" data-show="all" aria-pressed="true">Todos</button>
+        <button type="button" data-show="visible" aria-pressed="false">Visibles</button>
+        <button type="button" data-show="hidden" aria-pressed="false">Ocultos</button>
+      </div>
+    </div>
+    <ul id="game-list" class="game-list"></ul>
+    <p id="list-empty" class="empty" hidden></p>
+  </aside>
+
+  <section id="editor" class="editor" aria-live="polite"></section>
+</main>
+
+<div id="publish-bar" class="publish-bar" hidden>
+  <span id="pending-text"></span>
+  <div class="row">
+    <button type="button" id="discard" class="btn btn-quiet">Descartar</button>
+    <button type="button" id="review" class="btn btn-primary">Revisar y publicar</button>
+  </div>
+</div>
+
+<dialog id="publish-dialog" class="dialog">
+  <form method="dialog" id="publish-form">
+    <h2>Publicar cambios</h2>
+    <ul id="publish-summary" class="summary"></ul>
+    <ul id="publish-errors" class="error-list" hidden></ul>
+    <label for="commit-msg">Mensaje del commit</label>
+    <input id="commit-msg" maxlength="120" required>
+    <p class="hint">Se publica en GitHub Pages en un par de minutos. BlueStar lo lee al abrirse.</p>
+    <p id="publish-status" class="error" role="alert" hidden></p>
+    <div class="row end">
+      <button type="button" id="publish-cancel" class="btn btn-quiet">Cancelar</button>
+      <button type="submit" id="publish-confirm" class="btn btn-primary">Publicar</button>
+    </div>
+  </form>
+</dialog>
+<p id="toast" class="toast" role="status" hidden></p>
+</body>
+</html>

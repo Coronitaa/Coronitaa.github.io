@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-17T22:00:00.000Z",
+  "games": [
+    {
+      "appId": 4465480,
+      "name": "Counter-Strike: Global Offensive",
+      "presets": [
+        {
+          "id": "cs-go-con-refix",
+          "name": "CS:GO con ReFix",
+          "branch": "public",
+          "emulator": {
+            "type": "refix"
+          },
+          "note": "Versión recomendada para jugar en LAN con ReFix."
+        }
+      ]
+    }
+  ]
+}
