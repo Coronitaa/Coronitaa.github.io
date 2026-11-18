@@ -401,12 +401,12 @@ function buildsSection(g) {
       fill(wrap, h('p', { class: 'empty', text: 'Steam no publica builds para este juego (o necesita contraseña). Rellena los depots del preset a mano.' }));
       return;
     }
-    const fmt = (t) => (t ? new Date(t * 1000).toLocaleDateString('es', { year: 'numeric', month: 'short', day: 'numeric' }) : 'fecha desconocida');
+    const fmt = (t) => (t ? new Date(t * 1000).toLocaleDateString('es', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) : 'fecha desconocida');
     fill(wrap, 
-      h('p', { class: 'hint', text: 'Steam solo publica el build actual de cada rama; los anteriores son los que el panel ha ido registrando desde que el juego está en el catálogo.' }),
+      h('p', { class: 'hint', text: 'Steam solo publica el build actual de cada rama. Los anteriores son los que el panel registra cada hora y, para juegos antiguos, versiones con manifests publicados por la comunidad. Un preset instala exactamente los depots que fija.' }),
       h('ul', { class: 'build-list' }, builds.map((b) => h('li', { class: 'build-row' },
         h('span', { class: 'game-meta' },
-          h('span', { class: 'game-name', text: `Build ${b.buildId}${b.live ? ' · actual' : ''}` }),
+          h('span', { class: 'game-name', text: b.label ? b.label : `Build ${b.buildId}${b.live ? ' · actual' : ''}` }),
           h('span', { class: 'game-sub', text: `${b.branch} · ${fmt(b.timeUpdated ?? b.seenAt)} · ${Object.keys(b.manifests).length} depots` })),
         h('button', { type: 'button', class: 'btn', text: 'Usar como preset', onclick: () => addPreset(g, b) })))));
   };
@@ -421,8 +421,11 @@ function addPreset(g, build) {
   if (build) {
     const date = build.timeUpdated ? new Date(build.timeUpdated * 1000).toISOString().slice(0, 10) : '';
     Object.assign(preset, {
-      id: `build-${build.buildId}`, name: `Build ${build.buildId}${date ? ` (${date})` : ''}`,
-      branch: build.branch, buildId: build.buildId, manifests: { ...build.manifests },
+      id: build.buildId ? `build-${build.buildId}` : slug(build.label),
+      name: `${build.label ?? `Build ${build.buildId}`}${date ? ` (${date})` : ''}`,
+      branch: build.branch, manifests: { ...build.manifests },
+      ...(build.buildId ? { buildId: build.buildId } : {}),
+      ...(build.source ? { note: `Fuente de los manifests: ${build.source}` } : {}),
     });
     if (g.presets.some((x) => x.id === preset.id)) { toast('Ya hay un preset con ese build.'); return; }
   }

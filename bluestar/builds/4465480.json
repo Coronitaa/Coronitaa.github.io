@@ -14,6 +14,171 @@
     "738": "313951540668567317"
    },
    "seenAt": 1794961821
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Última versión de CS:GO (antes de CS2)",
+   "timeUpdated": 1693440000,
+   "manifests": {
+    "731": "718406683749122620",
+    "732": "2224497558453288476"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Riptide",
+   "timeUpdated": 1632268800,
+   "manifests": {
+    "731": "1886108042584539124",
+    "732": "4825420768191060692"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Broken Fang",
+   "timeUpdated": 1607040000,
+   "manifests": {
+    "731": "7075197944874666408",
+    "732": "8511862942912745178"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Shattered Web",
+   "timeUpdated": 1574035200,
+   "manifests": {
+    "731": "4143070761533081431",
+    "732": "2651133861761435138"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Antes de Panorama: Scaleform (fecha aproximada)",
+   "timeUpdated": 1533081600,
+   "manifests": {
+    "731": "2666951201135270376",
+    "732": "5695413866370602519"
+   },
+   "source": "https://github.com/k3razz/csgo_gc_scaleform"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Hydra",
+   "timeUpdated": 1495584000,
+   "manifests": {
+    "731": "5209920058776264290",
+    "732": "2841653970153791113"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Wildfire",
+   "timeUpdated": 1455753600,
+   "manifests": {
+    "731": "2005371546120585443",
+    "732": "2801753706668227303"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Bloodhound",
+   "timeUpdated": 1432684800,
+   "manifests": {
+    "731": "6749995636545577991",
+    "732": "2585153296283422161"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Vanguard",
+   "timeUpdated": 1415750400,
+   "manifests": {
+    "731": "113445833800098235",
+    "732": "1105998184720113115"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Breakout",
+   "timeUpdated": 1404259200,
+   "manifests": {
+    "731": "7367258073384633717",
+    "732": "5480779228919551046"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Build más antiguo que arranca (según la comunidad)",
+   "timeUpdated": 1394409600,
+   "manifests": {
+    "731": "372016768539540210",
+    "732": "5163602199570525474"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Phoenix",
+   "timeUpdated": 1392940800,
+   "manifests": {
+    "731": "4687598336091069439",
+    "732": "5615489181614923819"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Bravo",
+   "timeUpdated": 1379635200,
+   "manifests": {
+    "731": "492007031652436107",
+    "732": "8274973313318366884"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Operation Payback",
+   "timeUpdated": 1366934400,
+   "manifests": {
+    "731": "5918888484837415109",
+    "732": "8397799201197828033"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Versión más antigua conocida",
+   "timeUpdated": 1317168000,
+   "manifests": {
+    "731": "963373403141725295",
+    "732": "1856062891078548034"
+   },
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
   }
  ]
 }

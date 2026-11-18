@@ -75,8 +75,9 @@ export async function fetchBuilds(appId) {
   const seen = new Set();
   const all = [];
   for (const b of [...live, ...(recorded.builds ?? [])]) {
-    const key = `${b.branch}/${b.buildId}`;
-    if (seen.has(key) || !RE_DIGITS.test(String(b.buildId))) continue;
+    // Community entries (old versions Steam no longer lists) have a label and no build id.
+    const key = `${b.branch}/${b.buildId || b.label}`;
+    if (seen.has(key) || !(RE_DIGITS.test(String(b.buildId)) || b.label)) continue;
     seen.add(key);
     all.push(b);
   }

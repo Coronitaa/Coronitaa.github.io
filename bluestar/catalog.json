@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T00:34:59.642Z",
+  "updatedAt": "2026-11-17T23:59:00.000Z",
   "games": [
     {
       "appId": 4465480,
@@ -36,8 +36,21 @@
       ],
       "presets": [
         {
+          "id": "antes-de-panorama",
+          "name": "CS:GO antes de Panorama (menú Scaleform, 2018)",
+          "branch": "public",
+          "manifests": {
+            "731": "2666951201135270376",
+            "732": "5695413866370602519"
+          },
+          "emulator": {
+            "type": "refix_lan_online"
+          },
+          "note": "Última versión antes del menú Panorama (agosto de 2018), con el menú clásico Scaleform. Instala solo los depots 731 y 732. Fecha aproximada; manifests publicados por la comunidad (github.com/k3razz/csgo_gc_scaleform)."
+        },
+        {
           "id": "cs-go-con-refix",
-          "name": "CS:GO con ReFix",
+          "name": "CS:GO actual (build 22100934, feb 2026)",
           "branch": "public",
           "buildId": "22100934",
           "manifests": {
