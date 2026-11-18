@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://shared.steamstatic.com https://cdn.steamstatic.com https://shared.cloudflare.steamstatic.com https://cdn.cloudflare.steamstatic.com https://shared.akamai.steamstatic.com https://cdn.akamai.steamstatic.com https://steamcdn-a.akamaihd.net https://raw.githubusercontent.com https://coronitaa.github.io; connect-src 'self' https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://shared.steamstatic.com https://cdn.steamstatic.com https://shared.cloudflare.steamstatic.com https://cdn.cloudflare.steamstatic.com https://shared.akamai.steamstatic.com https://cdn.akamai.steamstatic.com https://steamcdn-a.akamaihd.net https://raw.githubusercontent.com https://coronitaa.github.io; connect-src 'self' https://api.github.com https://api.steamcmd.net; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <title>BlueStar · Panel de administración</title>
@@ -27,12 +27,15 @@
     <label for="token">Token de GitHub</label>
     <input id="token" name="token" type="password" spellcheck="false" autocomplete="off" required
            placeholder="github_pat_…">
+    <p class="hint">También puedes importar un archivo .json con el token (clave <code>Admin</code>): se lee en el navegador y no se muestra.</p>
     <p class="hint">Crea un <a href="https://github.com/settings/personal-access-tokens/new" rel="noopener noreferrer" target="_blank">token fine-grained</a>
       con acceso solo al repo <code>Coronitaa.github.io</code>, permiso <b>Contents: Read and write</b> y caducidad corta.
       Se guarda solo en esta pestaña y se borra al cerrarla.</p>
     <p id="login-error" class="error" role="alert" hidden></p>
     <div class="row">
       <button type="submit" class="btn btn-primary">Entrar</button>
+      <button type="button" id="token-file-btn" class="btn">Importar desde .json</button>
+      <input type="file" id="token-file" accept=".json,application/json" hidden>
       <button type="button" id="local-mode" class="btn btn-quiet" hidden>Probar en local sin GitHub</button>
     </div>
   </form>
@@ -47,9 +50,13 @@
         <button type="submit" class="btn btn-primary">Añadir</button>
       </div>
     </form>
+    <div class="seg source" role="radiogroup" aria-label="Lista">
+      <button type="button" data-source="catalog" aria-pressed="true">Catálogo del panel</button>
+      <button type="button" data-source="explore" aria-pressed="false">Todo Explorar</button>
+    </div>
     <div class="list-tools">
       <input id="filter" type="search" placeholder="Buscar por nombre o AppID" aria-label="Buscar juegos">
-      <div class="seg" role="radiogroup" aria-label="Mostrar">
+      <div class="seg" id="show-seg" role="radiogroup" aria-label="Mostrar">
         <button type="button" data-show="all" aria-pressed="true">Todos</button>
         <button type="button" data-show="visible" aria-pressed="false">Visibles</button>
         <button type="button" data-show="hidden" aria-pressed="false">Ocultos</button>

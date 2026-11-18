@@ -190,3 +190,15 @@ label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
 }
 /* A header that failed to load (src removed by app.js) keeps its space but not the broken-image glyph. */
 img:not([src]) { visibility: hidden; }
+
+/* Tags, builds and the whole-Explore search */
+.seg.source { margin-bottom: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 6px; padding: 2px 4px 2px 8px; font-size: 13px; }
+.chip-x { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px; }
+.chip-x:hover { color: var(--danger); }
+.builds { display: grid; gap: 8px; justify-items: start; }
+.build-list, .game-list { list-style: none; margin: 0; padding: 0; }
+.build-list { display: grid; gap: 4px; width: 100%; }
+.build-row, .explore-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.build-row .game-meta, .explore-row .game-meta { flex: 1; }

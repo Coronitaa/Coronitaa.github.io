@@ -11,7 +11,7 @@
           "name": "CS:GO con ReFix",
           "branch": "public",
           "emulator": {
-            "type": "refix"
+            "type": "refix_lan_online"
           },
           "note": "Versión recomendada para jugar en LAN con ReFix.",
           "buildId": "22100934",

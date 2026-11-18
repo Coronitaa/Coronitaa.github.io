@@ -1,5 +1,6 @@
 import { validateCatalog, EMULATOR_TYPES, steamHeaderUrl, httpsUrl } from './schema.js';
 import { GitHubStore, LocalStore, ConflictError } from './github.js';
+import { fetchSteamGame, fetchBuilds, loadTags, loadExploreIndex } from './steam.js';
 
 // Refuse to run inside a frame (CSP frame-ancestors cannot be set from a <meta> tag).
 if (window.top !== window.self) throw new Error('framed');
@@ -8,7 +9,7 @@ const TOKEN_KEY = 'bluestar-admin-token';
 const isLocalHost = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 
 const $ = (id) => document.getElementById(id);
-const state = { store: null, base: null, work: null, sha: null, selected: null, show: 'all', filter: '' };
+const state = { store: null, base: null, work: null, sha: null, selected: null, show: 'all', filter: '', source: 'catalog' };
 
 /** Element builder. Text always goes through textContent/value, never innerHTML. */
 function h(tag, props = {}, ...children) {
@@ -27,8 +28,16 @@ function h(tag, props = {}, ...children) {
 }
 
 const EMULATOR_LABELS = {
-  none: 'Ninguno', refix: 'ReFix', refix_goldberg: 'ReFix (Goldberg)', onlinefix: 'OnlineFix', custom: 'Personalizado',
+  none: 'Ninguno (Steam original)',
+  refix_lan: 'ReFix LAN',
+  refix_lan_online: 'ReFix LAN + Online',
+  refix_online_legacy: 'ReFix Online Legacy',
+  onlinefix: 'OnlineFix',
+  custom: 'Otro (personalizado)',
 };
+
+/** replaceChildren that skips null/false, which it would otherwise print as the text "null". */
+const fill = (el, ...kids) => el.replaceChildren(...kids.flat().filter((k) => k != null && k !== false));
 
 let uid = 0;
 const nextId = (p) => `${p}-${++uid}`;
@@ -88,6 +97,23 @@ $('login-form').addEventListener('submit', async (e) => {
   }
 });
 
+$('token-file-btn').addEventListener('click', () => $('token-file').click());
+$('token-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    const token = typeof data === 'string' ? data
+      : data?.Admin ?? data?.admin ?? data?.token ?? Object.values(data ?? {}).find((v) => typeof v === 'string');
+    if (typeof token !== 'string' || !token.trim()) throw new Error('El archivo no tiene un token (clave "Admin").');
+    $('token').value = token.trim();
+    $('login-form').requestSubmit();
+  } catch (err) {
+    showLogin(err instanceof SyntaxError ? 'El archivo no es un JSON válido.' : err.message);
+  }
+});
+
 $('local-mode').addEventListener('click', () => start(new LocalStore()).catch((err) => showLogin(err.message)));
 
 $('logout').addEventListener('click', () => {
@@ -105,13 +131,54 @@ const games = () => state.work.games;
 const findGame = (appId) => games().find((g) => g.appId === appId);
 const isDirty = () => state.work && JSON.stringify(state.work) !== JSON.stringify(state.base);
 
+async function renderExploreList() {
+  const q = state.filter.trim().toLowerCase();
+  const empty = $('list-empty');
+  if (q.length < 2) {
+    fill($('game-list'), );
+    empty.hidden = false;
+    empty.textContent = 'Escribe al menos 2 letras o un AppID para buscar entre todos los juegos de Explorar.';
+    return;
+  }
+  let index;
+  try { index = await loadExploreIndex(); } catch (err) { empty.hidden = false; empty.textContent = err.message; return; }
+  if (state.source !== 'explore' || q !== state.filter.trim().toLowerCase()) return;
+  const matches = [];
+  for (const g of index) {
+    if (String(g.appId) === q || g.key.includes(q)) matches.push(g);
+    if (matches.length >= 100) break;
+  }
+  fill($('game-list'), ...matches.map((x) => {
+    const inCatalog = findGame(x.appId);
+    const open = (patch) => {
+      if (!inCatalog) games().unshift({ appId: x.appId, name: x.name, ...patch });
+      else Object.assign(inCatalog, patch);
+      state.selected = x.appId;
+      changed();
+      renderEditor();
+    };
+    return h('li', { class: 'explore-row' },
+      h('span', { class: 'game-meta' },
+        h('span', { class: 'game-name', text: x.name }),
+        h('span', { class: 'game-sub', text: String(x.appId) })),
+      inCatalog?.hidden
+        ? h('button', { type: 'button', class: 'btn btn-quiet', text: 'Mostrar', onclick: () => { delete inCatalog.hidden; open({}); } })
+        : h('button', { type: 'button', class: 'btn btn-quiet', text: 'Ocultar', onclick: () => open({ hidden: true }) }),
+      h('button', { type: 'button', class: 'btn btn-quiet', text: inCatalog ? 'Editar' : 'Añadir', onclick: () => open({}) }));
+  }));
+  empty.hidden = matches.length > 0;
+  empty.textContent = 'Ningún juego de Explorar coincide. Puedes añadirlo igual por AppID arriba.';
+}
+
 function renderList() {
+  $('show-seg').hidden = state.source === 'explore';
+  if (state.source === 'explore') { renderExploreList(); return; }
   const q = state.filter.trim().toLowerCase();
   const list = games().filter((g) =>
     (state.show === 'all' || (state.show === 'hidden') === !!g.hidden)
     && (!q || String(g.appId).includes(q) || (g.name ?? '').toLowerCase().includes(q)));
 
-  $('game-list').replaceChildren(...list.map((g) => {
+  fill($('game-list'), ...list.map((g) => {
     const presets = g.presets?.length ?? 0;
     return h('li', {},
       h('button', {
@@ -135,9 +202,14 @@ function renderList() {
 }
 
 $('filter').addEventListener('input', (e) => { state.filter = e.target.value; renderList(); });
-document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+document.querySelectorAll('#show-seg button').forEach((b) => b.addEventListener('click', () => {
   state.show = b.dataset.show;
-  document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  document.querySelectorAll('#show-seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  renderList();
+}));
+document.querySelectorAll('.seg.source button').forEach((b) => b.addEventListener('click', () => {
+  state.source = b.dataset.source;
+  document.querySelectorAll('.seg.source button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
   renderList();
 }));
 
@@ -145,11 +217,12 @@ $('add-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const appId = Number($('add-appid').value.trim());
   if (!Number.isInteger(appId) || appId <= 0 || appId > 4294967295) { toast('Ese AppID no es válido.'); return; }
-  if (!findGame(appId)) games().unshift({ appId, name: '', presets: [] });
+  const isNew = !findGame(appId);
+  if (isNew) games().unshift({ appId, name: '' });
   $('add-appid').value = '';
   state.selected = appId;
   render();
-  document.querySelector('#editor input[data-field="name"]')?.focus();
+  if (isNew) importFromSteam(findGame(appId), { onlyMissing: true });
 });
 
 // ── Editor ─────────────────────────────────────────────────────────────────
@@ -177,6 +250,19 @@ function field(label, obj, key, opts = {}) {
     h('label', { for: id, text: label }), input, opts.hint ? h('p', { class: 'hint', text: opts.hint }) : null);
 }
 
+/** Unix-seconds field shown as a date picker. */
+function dateField(label, obj, key) {
+  const id = nextId('d');
+  const value = obj[key] ? new Date(obj[key] * 1000).toISOString().slice(0, 10) : '';
+  return h('div', { class: 'field' }, h('label', { for: id, text: label }), h('input', {
+    id, type: 'date', value,
+    oninput: (e) => {
+      if (!e.target.value) delete obj[key]; else obj[key] = Math.floor(Date.parse(`${e.target.value}T00:00:00Z`) / 1000);
+      changed();
+    },
+  }));
+}
+
 function changed() {
   const n = pendingCount();
   $('publish-bar').hidden = n === 0;
@@ -189,7 +275,7 @@ function renderEditor() {
   const g = state.selected != null ? findGame(state.selected) : null;
   document.body.classList.toggle('editing', !!g);
   if (!g) {
-    ed.replaceChildren(h('div', { class: 'editor-empty' },
+    fill(ed, h('div', { class: 'editor-empty' },
       h('h2', { text: 'Elige un juego' }),
       h('p', { text: 'Selecciona un juego de la lista para editar su ficha y sus versiones recomendadas, u ocultarlo de Explorar.' })));
     return;
@@ -201,7 +287,7 @@ function renderEditor() {
     preview.src = u ? u.href : steamHeaderUrl(g.appId);
   };
 
-  ed.replaceChildren(
+  fill(ed, 
     h('button', { type: 'button', class: 'btn btn-quiet back', text: '← Juegos', onclick: () => { state.selected = null; render(); } }),
     h('div', { class: 'editor-head' },
       preview,
@@ -217,14 +303,24 @@ function renderEditor() {
           h('span', { text: 'Ocultar en Explorar' })),
         h('p', { class: 'hint', text: g.hidden
           ? 'BlueStar no lo mostrará en Explorar, aunque Steam lo devuelva en una búsqueda.'
-          : 'Aparece al principio de Explorar, y en las búsquedas que coincidan con su nombre.' }))),
+          : 'Forma parte del feed de Explorar como cualquier juego: búsquedas, tags y orden normales.' }),
+        h('button', { type: 'button', class: 'btn', text: 'Traer datos de Steam', onclick: () => importFromSteam(g) }))),
     h('div', { class: 'grid' },
       field('Nombre', g, 'name', { placeholder: 'Nombre como aparece en Steam' }),
       field('Imagen de cabecera', g, 'headerImageUrl', {
         code: true, placeholder: steamHeaderUrl(g.appId), onchange: updatePreview,
         hint: 'Vacío usa la imagen de Steam. Solo CDN de Steam o de Coronitaa.',
       }),
+      field('Cápsula vertical (600×900)', g, 'capsuleImageUrl', { code: true }),
+      field('Hero (fondo)', g, 'heroImageUrl', { code: true }),
+      field('Logo', g, 'logoImageUrl', { code: true }),
+      field('Desarrollador', g, 'developer'),
+      field('Editor', g, 'publisher'),
+      dateField('Fecha de lanzamiento', g, 'releaseDateUtc'),
+      tagEditor(g),
       field('Descripción', g, 'description', { multiline: true, wide: true, trim: false })),
+    h('div', { class: 'section-head' }, h('h2', { text: 'Builds del juego' })),
+    buildsSection(g),
     h('div', { class: 'section-head' },
       h('h2', { text: 'Versiones recomendadas' }),
       h('button', { type: 'button', class: 'btn', text: 'Añadir preset', onclick: () => addPreset(g) })),
@@ -245,10 +341,92 @@ function renderEditor() {
   );
 }
 
-function addPreset(g) {
+/** Fills name, artwork, tags, developer and release date from Steam. */
+async function importFromSteam(g, { onlyMissing = false } = {}) {
+  try {
+    const data = await fetchSteamGame(g.appId);
+    for (const [k, v] of Object.entries(data)) if (!onlyMissing || g[k] == null || g[k] === '') g[k] = v;
+    changed();
+    if (state.selected === g.appId) renderEditor();
+    toast(`Datos de Steam cargados para ${g.name || g.appId}.`);
+  } catch (err) {
+    toast(`Steam: ${err.message} Puedes rellenar los datos a mano.`);
+  }
+}
+
+/** Tag chips with remove buttons and a name box that suggests Steam's tags. */
+function tagEditor(g) {
+  const wrap = h('div', { class: 'field wide' });
+  const listId = nextId('tags');
+  loadTags().then((tags) => {
+    const byName = new Map(Object.entries(tags).map(([id, name]) => [name.toLowerCase(), Number(id)]));
+    const draw = () => {
+      const input = h('input', {
+        list: listId, placeholder: 'Añadir tag (ej.: Acción)', 'aria-label': 'Añadir tag',
+        onkeydown: (e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          const v = e.target.value.trim();
+          const id = /^[0-9]+$/.test(v) ? Number(v) : byName.get(v.toLowerCase());
+          if (!id) { toast('Ese tag no existe en Steam.'); return; }
+          g.tagIds = [...new Set([...(g.tagIds ?? []), id])].slice(0, 40);
+          changed();
+          draw();
+          wrap.querySelector('input')?.focus();
+        },
+      });
+      fill(wrap, 
+        h('label', { text: 'Tags (filtros de Explorar)' }),
+        h('div', { class: 'chips' }, (g.tagIds ?? []).map((id) => h('span', { class: 'chip' },
+          tags[id] ?? `#${id}`,
+          h('button', {
+            type: 'button', class: 'chip-x', 'aria-label': `Quitar ${tags[id] ?? id}`, text: '×',
+            onclick: () => { g.tagIds = g.tagIds.filter((t) => t !== id); if (!g.tagIds.length) delete g.tagIds; changed(); draw(); },
+          })))),
+        input,
+        h('datalist', { id: listId }, Object.values(tags).sort().map((n) => h('option', { value: n }))));
+    };
+    draw();
+  });
+  return wrap;
+}
+
+/** The game's builds (live branches + recorded history); each one can become a preset. */
+function buildsSection(g) {
+  const wrap = h('div', { class: 'builds' });
+  const load = async () => {
+    fill(wrap, h('p', { class: 'empty', text: 'Cargando builds…' }));
+    const builds = await fetchBuilds(g.appId);
+    if (!builds.length) {
+      fill(wrap, h('p', { class: 'empty', text: 'Steam no publica builds para este juego (o necesita contraseña). Rellena los depots del preset a mano.' }));
+      return;
+    }
+    const fmt = (t) => (t ? new Date(t * 1000).toLocaleDateString('es', { year: 'numeric', month: 'short', day: 'numeric' }) : 'fecha desconocida');
+    fill(wrap, 
+      h('p', { class: 'hint', text: 'Steam solo publica el build actual de cada rama; los anteriores son los que el panel ha ido registrando desde que el juego está en el catálogo.' }),
+      h('ul', { class: 'build-list' }, builds.map((b) => h('li', { class: 'build-row' },
+        h('span', { class: 'game-meta' },
+          h('span', { class: 'game-name', text: `Build ${b.buildId}${b.live ? ' · actual' : ''}` }),
+          h('span', { class: 'game-sub', text: `${b.branch} · ${fmt(b.timeUpdated ?? b.seenAt)} · ${Object.keys(b.manifests).length} depots` })),
+        h('button', { type: 'button', class: 'btn', text: 'Usar como preset', onclick: () => addPreset(g, b) })))));
+  };
+  wrap.append(h('button', { type: 'button', class: 'btn', text: 'Cargar builds', onclick: load }));
+  return wrap;
+}
+
+function addPreset(g, build) {
   g.presets ??= [];
   const n = g.presets.length + 1;
-  g.presets.push({ id: n === 1 ? 'recomendada' : `recomendada-${n}`, name: '', branch: 'public', emulator: { type: 'refix' } });
+  const preset = { id: n === 1 ? 'recomendada' : `recomendada-${n}`, name: '', branch: 'public', emulator: { type: 'refix_lan_online' } };
+  if (build) {
+    const date = build.timeUpdated ? new Date(build.timeUpdated * 1000).toISOString().slice(0, 10) : '';
+    Object.assign(preset, {
+      id: `build-${build.buildId}`, name: `Build ${build.buildId}${date ? ` (${date})` : ''}`,
+      branch: build.branch, buildId: build.buildId, manifests: { ...build.manifests },
+    });
+    if (g.presets.some((x) => x.id === preset.id)) { toast('Ya hay un preset con ese build.'); return; }
+  }
+  g.presets.push(preset);
   changed();
   renderEditor();
 }
@@ -283,7 +461,7 @@ function presetCard(g, p, index) {
       }),
       idField,
       field('Rama', p, 'branch', { code: true, placeholder: 'public' }),
-      field('Build ID', p, 'buildId', { code: true, numeric: true, placeholder: 'Opcional', hint: 'Buscalo en SteamDB → Depots/Patches.' })),
+      field('Build ID', p, 'buildId', { code: true, numeric: true, placeholder: 'Opcional', hint: 'Lo rellena «Usar como preset» en Builds del juego.' })),
     h('h3', { text: 'Depots y manifests' }),
     pairTable(p, 'manifests', ['Depot', 'Manifest'], 'Sin depots fijados: se descarga lo último de la rama.'),
     h('h3', { text: 'Emulador' }),
@@ -311,7 +489,7 @@ function pairTable(owner, key, [kLabel, vLabel], emptyText) {
     changed();
   };
   const draw = () => {
-    wrap.replaceChildren(
+    fill(wrap, 
       rows.length === 0 ? h('p', { class: 'empty', text: emptyText }) : null,
       ...rows.map((r, i) => h('div', { class: 'pair' },
         h('input', { class: 'mono', value: r.k, placeholder: kLabel, 'aria-label': kLabel, oninput: (e) => { r.k = e.target.value; sync(); } }),
@@ -378,7 +556,7 @@ function emulatorEditor(p) {
 function modsEditor(p) {
   p.mods ??= [];
   const wrap = h('div', { class: 'mods' });
-  const draw = () => wrap.replaceChildren(
+  const draw = () => fill(wrap, 
     p.mods.length === 0 ? h('p', { class: 'empty', text: 'Sin mods.' }) : null,
     ...p.mods.map((m, i) => h('div', { class: 'mod grid' },
       field('Nombre', m, 'name'),
@@ -454,8 +632,8 @@ $('discard').addEventListener('click', () => {
 $('review').addEventListener('click', () => {
   const summary = changesSummary();
   const { errors } = validateCatalog(normalized());
-  $('publish-summary').replaceChildren(...summary.map((s) => h('li', { text: s })));
-  $('publish-errors').replaceChildren(...errors.map((s) => h('li', { text: s })));
+  fill($('publish-summary'), ...summary.map((s) => h('li', { text: s })));
+  fill($('publish-errors'), ...errors.map((s) => h('li', { text: s })));
   $('publish-errors').hidden = errors.length === 0;
   $('publish-confirm').disabled = errors.length > 0;
   $('publish-status').hidden = true;

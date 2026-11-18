@@ -9,7 +9,7 @@ const IMAGE_HOSTS = new Set([
   'shared.akamai.steamstatic.com', 'cdn.akamai.steamstatic.com', 'steamcdn-a.akamaihd.net',
   'coronitaa.github.io', 'raw.githubusercontent.com',
 ]);
-export const EMULATOR_TYPES = ['none', 'refix', 'refix_goldberg', 'onlinefix', 'custom'];
+export const EMULATOR_TYPES = ['none', 'refix_lan', 'refix_lan_online', 'refix_online_legacy', 'onlinefix', 'custom'];
 const SETTINGS_EXT = ['.ini', '.cfg', '.txt', '.json'];
 
 const RE_PRESET_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
@@ -176,13 +176,28 @@ export function validateCatalog(input) {
     const out = { appId };
     if (name) out.name = name;
     if (hidden) out.hidden = true;
-    if (g.headerImageUrl) {
-      const u = httpsUrl(g.headerImageUrl);
-      if (u && IMAGE_HOSTS.has(u.hostname.toLowerCase())) out.headerImageUrl = u.href;
-      else { errors.push(`juego ${appId}: la imagen tiene que ser https en un CDN de Steam o de Coronitaa`); continue; }
+    let imagesOk = true;
+    for (const f of ['headerImageUrl', 'capsuleImageUrl', 'heroImageUrl', 'logoImageUrl']) {
+      if (!g[f]) continue;
+      const u = httpsUrl(g[f]);
+      if (u && IMAGE_HOSTS.has(u.hostname.toLowerCase())) out[f] = u.href;
+      else { errors.push(`juego ${appId}: ${f} tiene que ser https en un CDN de Steam o de Coronitaa`); imagesOk = false; }
     }
+    if (!imagesOk) continue;
     const desc = clean(g.description, 2000, true);
     if (desc) out.description = desc;
+    for (const f of ['developer', 'publisher']) { const v = clean(g[f], 120); if (v) out[f] = v; }
+    if (g.releaseDateUtc != null) {
+      if (!Number.isInteger(g.releaseDateUtc) || g.releaseDateUtc <= 0 || g.releaseDateUtc >= 4102444800) {
+        errors.push(`juego ${appId}: fecha de lanzamiento inválida`); continue;
+      }
+      out.releaseDateUtc = g.releaseDateUtc;
+    }
+    if (Array.isArray(g.tagIds) && g.tagIds.length) {
+      const tags = [...new Set(g.tagIds)].filter((t) => Number.isInteger(t) && t > 0).slice(0, 40);
+      if (tags.length !== g.tagIds.length) { errors.push(`juego ${appId}: tags inválidos o repetidos`); continue; }
+      out.tagIds = tags;
+    }
 
     const presets = [];
     const ids = new Set();

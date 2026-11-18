@@ -25,7 +25,9 @@ ni guarda ningún secreto en el JavaScript (cualquier comprobación en el navega
 - Se pide un token fine-grained; nunca la contraseña.
 - Se guarda solo en `sessionStorage` (esta pestaña) y se borra con "Salir" o al cerrar la pestaña. No va en la URL ni a otro sitio
   que no sea `api.github.com`.
-- La CSP solo permite conexiones a `api.github.com` (y al propio sitio), así que un script inyectado no podría mandarlo a otro dominio.
+- Se puede importar desde un `.json` (clave `Admin`): el archivo se lee en el navegador, el token no se muestra y sigue el mismo camino.
+- La CSP solo permite conexiones a `api.github.com`, `api.steamcmd.net` (datos públicos de Steam, sin el token) y al propio sitio,
+  así que un script inyectado no podría mandar el token a otro dominio. El token solo se envía a `api.github.com`.
 
 ## La página
 
@@ -34,6 +36,14 @@ ni guarda ningún secreto en el JavaScript (cualquier comprobación en el navega
 - Todo dato del catálogo se pinta con `textContent`/`value`, nunca con `innerHTML`, así que un nombre o nota con HTML se muestra como texto.
 - La página se niega a ejecutarse dentro de un iframe (clickjacking), porque `frame-ancestors` no se puede poner en una `<meta>`.
 - `noindex` y `no-referrer`.
+
+## Datos automáticos
+
+- `api.steamcmd.net` rellena nombre, arte, tags y builds. Es un tercero: sus datos pasan la misma validación que lo escrito a mano
+  y el admin los revisa antes de publicar.
+- `.github/workflows/bluestar-data.yml` (cada hora) registra builds nuevos en `bluestar/builds/` y una vez al día regenera
+  `bluestar/explore-index.json` desde el release de BlueStar-Catalog. Usa el `GITHUB_TOKEN` del repo con `contents: write`,
+  `actions/checkout` fijado por SHA, y solo escribe ids numéricos validados. No toca `catalog.json`.
 
 ## Lo que BlueStar hace con el catálogo (lo trata como no confiable)
 
