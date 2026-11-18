@@ -71,7 +71,13 @@ export class GitHubStore {
       }),
     });
     if (res.status === 409 || res.status === 422) throw new ConflictError('El catálogo cambió en GitHub desde que lo abriste.');
-    if (res.status === 403 || res.status === 404) throw new Error('GitHub rechazó el commit: esta cuenta no puede escribir en el repo.');
+    if (res.status === 403 || res.status === 404) {
+      const msg = (await res.json().catch(() => ({}))).message ?? '';
+      // GitHub reports the user's role as able to push even when the token itself is read-only.
+      throw new Error(/personal access token/i.test(msg)
+        ? 'El token es de solo lectura: edítalo en GitHub y dale «Contents: Read and write» sobre Coronitaa.github.io.'
+        : 'GitHub rechazó el commit: esta cuenta no puede escribir en el repo.');
+    }
     if (!res.ok) throw new Error(`GitHub respondió ${res.status} al publicar.`);
     return (await res.json()).content.sha;
   }
