@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T01:08:43Z",
+  "updatedAt": "2026-11-18T01:46:10Z",
   "games": [
     {
       "appId": 4465480,
@@ -44,9 +44,9 @@
             "732": "6645681230678480473"
           },
           "emulator": {
-            "type": "refix_lan_online"
+            "type": "none"
           },
-          "note": "Build del 7 de marzo de 2018, con el menú clásico Scaleform (Panorama llegó en agosto de 2018). Instala solo los depots 731 y 732. Manifests verificados con Steam y publicados en el sitio del panel."
+          "note": "Build del 7 de marzo de 2018, con el menú clásico Scaleform (Panorama llegó en agosto de 2018). Instala solo los depots 731 y 732. Sin emulador: abre Steam antes de jugar. ReFix todavía no es compatible con este build (le falta la interfaz SteamNetworkingSocketsSerialized de 2018)."
         },
         {
           "id": "cs-go-con-refix",
