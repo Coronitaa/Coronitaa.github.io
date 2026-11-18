@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T01:46:10Z",
+  "updatedAt": "2026-11-18T08:33:27Z",
   "games": [
     {
       "appId": 4465480,
@@ -44,9 +44,12 @@
             "732": "6645681230678480473"
           },
           "emulator": {
-            "type": "none"
+            "type": "refix_lan_online"
           },
-          "note": "Build del 7 de marzo de 2018, con el menú clásico Scaleform (Panorama llegó en agosto de 2018). Instala solo los depots 731 y 732. Sin emulador: abre Steam antes de jugar. ReFix todavía no es compatible con este build (le falta la interfaz SteamNetworkingSocketsSerialized de 2018)."
+          "note": "Build del 7 de marzo de 2018, con el menú clásico Scaleform (Panorama llegó en agosto de 2018). Instala solo los depots 731 y 732, con ReFix LAN + Online (2.5.3 o posterior) y el mod de CS:GO de ReFix (servidores LAN, inventario y modos de juego). Lleva junto al juego las librerías de DirectX que necesita, así que funciona en un PC sin el runtime de DirectX instalado.",
+          "refixMods": [
+            "refix.csgo.lan_overhaul"
+          ]
         },
         {
           "id": "cs-go-con-refix",
