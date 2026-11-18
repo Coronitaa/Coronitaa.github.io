@@ -62,24 +62,50 @@
   {
    "buildId": "",
    "branch": "public",
-   "label": "Antes de Panorama: Scaleform (fecha aproximada)",
-   "timeUpdated": 1533081600,
+   "label": "Panorama por defecto (Scaleform aún con -scaleform)",
+   "timeUpdated": 1534893420,
    "manifests": {
     "731": "2666951201135270376",
     "732": "5695413866370602519"
    },
-   "source": "https://github.com/k3razz/csgo_gc_scaleform"
+   "source": "https://github.com/k3razz/csgo_gc_scaleform",
+   "verified": true
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Antes de Panorama: menú Scaleform (último documentado)",
+   "timeUpdated": 1520462940,
+   "manifests": {
+    "731": "1726760845998127111",
+    "732": "6645681230678480473"
+   },
+   "verified": true,
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2965765996"
   },
   {
    "buildId": "",
    "branch": "public",
    "label": "Operation Hydra",
-   "timeUpdated": 1495584000,
+   "timeUpdated": 1495668060,
    "manifests": {
     "731": "5209920058776264290",
     "732": "2841653970153791113"
    },
-   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079"
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926956079",
+   "verified": true
+  },
+  {
+   "buildId": "",
+   "branch": "public",
+   "label": "Antes de Operation Hydra (base de CS:GO GC)",
+   "timeUpdated": 1495146660,
+   "manifests": {
+    "731": "7043469183016184477",
+    "732": "4047004309608881181"
+   },
+   "verified": true,
+   "source": "https://github.com/k3razz/csgo_gc_scaleform"
   },
   {
    "buildId": "",

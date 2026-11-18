@@ -321,6 +321,9 @@ function renderEditor() {
       field('Descripción', g, 'description', { multiline: true, wide: true, trim: false })),
     h('div', { class: 'section-head' }, h('h2', { text: 'Builds del juego' })),
     buildsSection(g),
+    h('h3', { text: 'Claves de depot' }),
+    h('p', { class: 'hint', text: 'Para builds antiguos: BlueStar las usa para descifrar los depots. Sus manifests van en bluestar/manifests/<depot>_<manifest>.manifest.' }),
+    pairTable(g, 'depotKeys', ['Depot', 'Clave (64 hex)'], 'Sin claves: BlueStar las busca en sus fuentes habituales.'),
     h('div', { class: 'section-head' },
       h('h2', { text: 'Versiones recomendadas' }),
       h('button', { type: 'button', class: 'btn', text: 'Añadir preset', onclick: () => addPreset(g) })),
@@ -406,7 +409,7 @@ function buildsSection(g) {
       h('p', { class: 'hint', text: 'Steam solo publica el build actual de cada rama. Los anteriores son los que el panel registra cada hora y, para juegos antiguos, versiones con manifests publicados por la comunidad. Un preset instala exactamente los depots que fija.' }),
       h('ul', { class: 'build-list' }, builds.map((b) => h('li', { class: 'build-row' },
         h('span', { class: 'game-meta' },
-          h('span', { class: 'game-name', text: b.label ? b.label : `Build ${b.buildId}${b.live ? ' · actual' : ''}` }),
+          h('span', { class: 'game-name', text: `${b.label ? b.label : `Build ${b.buildId}${b.live ? ' · actual' : ''}`}${b.verified ? ' · verificado' : ''}` }),
           h('span', { class: 'game-sub', text: `${b.branch} · ${fmt(b.timeUpdated ?? b.seenAt)} · ${Object.keys(b.manifests).length} depots` })),
         h('button', { type: 'button', class: 'btn', text: 'Usar como preset', onclick: () => addPreset(g, b) })))));
   };

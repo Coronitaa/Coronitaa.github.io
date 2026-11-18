@@ -193,6 +193,17 @@ export function validateCatalog(input) {
       }
       out.releaseDateUtc = g.releaseDateUtc;
     }
+    if (g.depotKeys && Object.keys(g.depotKeys).length) {
+      const keys = {};
+      let keysOk = true;
+      for (const [depot, key] of Object.entries(g.depotKeys)) {
+        const k = typeof key === 'string' ? key.trim().toLowerCase() : '';
+        if (!isUint(depot, U32_MAX) || !RE_SHA.test(k)) { errors.push(`juego ${appId}: clave de depot inválida (${depot})`); keysOk = false; break; }
+        keys[depot] = k;
+      }
+      if (!keysOk) continue;
+      out.depotKeys = keys;
+    }
     if (Array.isArray(g.tagIds) && g.tagIds.length) {
       const tags = [...new Set(g.tagIds)].filter((t) => Number.isInteger(t) && t > 0).slice(0, 40);
       if (tags.length !== g.tagIds.length) { errors.push(`juego ${appId}: tags inválidos o repetidos`); continue; }
