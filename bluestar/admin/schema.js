@@ -160,12 +160,25 @@ function validatePreset(p, appId, errors) {
     refixMods = [...new Set(p.refixMods)];
   }
 
+  // Name and note in other languages ({ en: { name, note } }); BlueStar shows the UI language's text.
+  const translations = {};
+  if (p.translations != null) {
+    if (typeof p.translations !== 'object' || Array.isArray(p.translations)) { errors.push(`${where}: traducciones inválidas`); return null; }
+    for (const [lang, t] of Object.entries(p.translations).slice(0, 10)) {
+      if (!/^[a-z]{2}$/.test(lang) || !t || typeof t !== 'object') { errors.push(`${where}: idioma de traducción inválido "${lang}"`); return null; }
+      const tn = clean(t.name, 120);
+      const tnote = clean(t.note, 2000, true);
+      if (tn || tnote) translations[lang] = { ...(tn ? { name: tn } : {}), ...(tnote ? { note: tnote } : {}) };
+    }
+  }
+
   const out = { id: p.id, name, branch };
   if (p.buildId) out.buildId = p.buildId;
   if (entries.length) out.manifests = manifests;
   out.emulator = emulator;
   if (mods.length) out.mods = mods;
   if (refixMods) out.refixMods = refixMods;
+  if (Object.keys(translations).length) out.translations = translations;
   const note = clean(p.note, 2000, true);
   if (note) out.note = note;
   return out;

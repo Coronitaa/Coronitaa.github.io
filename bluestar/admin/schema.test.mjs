@@ -50,4 +50,7 @@ assert.equal(buildOnDate(hist, '2018-05-01').buildId, '2');
 assert.equal(buildOnDate(hist, '2018-03-09', 'beta').buildId, '9');
 assert.equal(buildOnDate(hist, '2017-01-01'), null);
 assert.equal(buildOnDate(hist, 'nope'), null);
+const tr = (translations) => validateCatalog(withPreset({ id: 'p', name: 'P', translations }));
+assert.deepEqual(tr({ en: { name: ' N ', note: 'x' }, es: {} }).catalog.games[0].presets[0].translations, { en: { name: 'N', note: 'x' } });
+for (const v of [{ EN: { name: 'x' } }, { en: 'x' }, ['x']]) assert.ok(tr(v).errors.length > 0, JSON.stringify(v));
 console.log('schema ok');

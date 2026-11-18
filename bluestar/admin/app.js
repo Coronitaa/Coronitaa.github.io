@@ -30,7 +30,7 @@ function h(tag, props = {}, ...children) {
 const EMULATOR_LABELS = {
   none: 'Ninguno (Steam original)',
   refix_lan: 'ReFix LAN Offline',
-  refix_lan_online: 'ReFix LAN + Online',
+  refix_lan_online: 'ReFix Mixed (LAN + Online)',
   refix_online_legacy: 'ReFix Online Legacy',
   onlinefix: 'OnlineFix',
   custom: 'Otro (personalizado)',
@@ -495,7 +495,29 @@ function presetCard(g, p, index) {
     field('Nota para el usuario', p, 'note', {
       multiline: true, wide: true, trim: false,
       hint: 'Se muestra en el instalador junto a la versión recomendada.',
-    }));
+    }),
+    h('h3', { text: 'En inglés' }),
+    h('p', { class: 'hint', text: 'BlueStar en inglés muestra estos textos; vacíos, usa el nombre y la nota de arriba.' }),
+    h('div', { class: 'grid' },
+      field('Nombre (inglés)', translation(p, 'en'), 'name', { placeholder: 'E.g.: Last CS:GO version' }),
+      field('Nota (inglés)', translation(p, 'en'), 'note', { multiline: true, wide: true, trim: false })));
+}
+
+/** The preset's text in one language. Writes create p.translations[lang] and clearing drops it, so just
+ *  opening a preset does not mark it as changed. */
+function translation(p, lang) {
+  const current = () => p.translations?.[lang] ?? {};
+  return new Proxy({}, {
+    get: (_, k) => current()[k],
+    set: (_, k, v) => { p.translations ??= {}; (p.translations[lang] ??= {})[k] = v; return true; },
+    deleteProperty: (_, k) => {
+      const t = p.translations?.[lang];
+      if (t) delete t[k];
+      if (t && !Object.keys(t).length) delete p.translations[lang];
+      if (p.translations && !Object.keys(p.translations).length) delete p.translations;
+      return true;
+    },
+  });
 }
 
 function isPublishedPreset(appId, id) {
@@ -651,6 +673,10 @@ function normalized() {
       for (const p of g.presets) {
         if (p.mods) p.mods = p.mods.filter((m) => Object.keys(m).length);
         if (!p.mods?.length) delete p.mods;
+        if (p.translations) {
+          for (const [lang, t] of Object.entries(p.translations)) if (!Object.keys(t).length) delete p.translations[lang];
+          if (!Object.keys(p.translations).length) delete p.translations;
+        }
         // Only ReFix installs ReFix's mods.
         if (!REFIX_EMULATORS.includes(p.emulator?.type)) delete p.refixMods;
       }

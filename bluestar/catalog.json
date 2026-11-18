@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-18T08:33:27Z",
+  "updatedAt": "2026-11-18T15:29:35Z",
   "games": [
     {
       "appId": 4465480,
@@ -46,10 +46,16 @@
           "emulator": {
             "type": "refix_lan_online"
           },
-          "note": "Build del 7 de marzo de 2018, con el menú clásico Scaleform (Panorama llegó en agosto de 2018). Instala solo los depots 731 y 732, con ReFix LAN + Online (2.5.3 o posterior) y el mod de CS:GO de ReFix (servidores LAN, inventario y modos de juego). Lleva junto al juego las librerías de DirectX que necesita, así que funciona en un PC sin el runtime de DirectX instalado.",
+          "note": "Build del 7 de marzo de 2018, con el menú clásico Scaleform (Panorama llegó en agosto de 2018). Instala solo los depots 731 y 732, con ReFix Mixed (LAN + Online, 2.5.3 o posterior) y el mod de CS:GO de ReFix (servidores LAN, inventario y modos de juego). Lleva junto al juego las librerías de DirectX que necesita, así que funciona en un PC sin el runtime de DirectX instalado.",
           "refixMods": [
             "refix.csgo.lan_overhaul"
-          ]
+          ],
+          "translations": {
+            "en": {
+              "name": "CS:GO before Panorama (7 Mar 2018, Scaleform menu)",
+              "note": "The 7 March 2018 build, with the classic Scaleform menu (Panorama arrived in August 2018). Installs only depots 731 and 732, with ReFix Mixed (LAN + Online, 2.5.3 or later) and ReFix's CS:GO mod (LAN servers, inventory and game modes). It carries the DirectX libraries it needs next to the game, so it runs on a PC without the DirectX runtime installed."
+            }
+          }
         },
         {
           "id": "cs-go-con-refix",
@@ -67,7 +73,13 @@
           "emulator": {
             "type": "refix_lan_online"
           },
-          "note": "Versión recomendada para jugar en LAN con ReFix."
+          "note": "Versión recomendada para jugar en LAN con ReFix.",
+          "translations": {
+            "en": {
+              "name": "Current CS:GO (build 22100934, Feb 2026)",
+              "note": "The recommended version for LAN play with ReFix."
+            }
+          }
         }
       ],
       "depotKeys": {
