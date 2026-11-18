@@ -1,19 +1,44 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-17T23:00:00.000Z",
+  "updatedAt": "2026-11-18T00:34:59.642Z",
   "games": [
     {
       "appId": 4465480,
-      "name": "Counter-Strike: Global Offensive",
+      "name": "Counter-Strike:Global Offensive",
+      "headerImageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4465480/a7ec167096e887d775d775fbb8b7b5efc4186291/header.jpg",
+      "capsuleImageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4465480/c667416eab27d88abfdd15de42cc92bee105b1d3/library_capsule_2x.jpg",
+      "heroImageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4465480/eea1bd5da7cabe4cf8d4e4648b380056ba0c9b4e/library_hero_2x.jpg",
+      "logoImageUrl": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4465480/f6aa923d6a1c1b3d6632f0b798ec78bc9cbcb40f/logo_2x.png",
+      "developer": "Valve",
+      "publisher": "Valve",
+      "releaseDateUtc": 1345568400,
+      "tagIds": [
+        19,
+        1663,
+        5055,
+        1774,
+        4667,
+        113,
+        3839,
+        3859,
+        1708,
+        5711,
+        4191,
+        1775,
+        4168,
+        3993,
+        4085,
+        1685,
+        44868,
+        1667,
+        5350,
+        9551
+      ],
       "presets": [
         {
           "id": "cs-go-con-refix",
           "name": "CS:GO con ReFix",
           "branch": "public",
-          "emulator": {
-            "type": "refix_lan_online"
-          },
-          "note": "Versión recomendada para jugar en LAN con ReFix.",
           "buildId": "22100934",
           "manifests": {
             "731": "1224088799001669801",
@@ -22,7 +47,11 @@
             "736": "1949918900514112752",
             "737": "8959772282070246004",
             "738": "313951540668567317"
-          }
+          },
+          "emulator": {
+            "type": "refix_lan_online"
+          },
+          "note": "Versión recomendada para jugar en LAN con ReFix."
         }
       ]
     }
