@@ -640,19 +640,19 @@ function refixSection(p) {
 }
 
 function modsEditor(p) {
-  p.mods ??= [];
+  // p.mods only exists while it has rows: an empty array would count as an unpublished change.
   const wrap = h('div', { class: 'mods' });
   const draw = () => fill(wrap,
-    p.mods.length === 0 ? h('p', { class: 'empty', text: 'Sin mods.' }) : null,
-    ...p.mods.map((m, i) => h('div', { class: 'mod grid' },
+    !p.mods?.length ? h('p', { class: 'empty', text: 'Sin mods.' }) : null,
+    ...(p.mods ?? []).map((m, i) => h('div', { class: 'mod grid' },
       field('Nombre', m, 'name'),
       field('URL', m, 'url', { code: true, placeholder: 'https://github.com/Coronitaa/…' }),
       shaField(m),
       h('div', { class: 'field end' }, h('button', {
         type: 'button', class: 'btn btn-quiet danger-text', text: 'Quitar mod',
-        onclick: () => { p.mods.splice(i, 1); changed(); draw(); },
+        onclick: () => { p.mods.splice(i, 1); if (!p.mods.length) delete p.mods; changed(); draw(); },
       })))),
-    h('button', { type: 'button', class: 'btn btn-quiet', text: 'Añadir mod', onclick: () => { p.mods.push({}); draw(); } }));
+    h('button', { type: 'button', class: 'btn btn-quiet', text: 'Añadir mod', onclick: () => { (p.mods ??= []).push({}); draw(); } }));
   draw();
   return wrap;
 }
