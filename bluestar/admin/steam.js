@@ -84,6 +84,38 @@ export async function fetchBuilds(appId) {
   return all.sort((a, b) => (b.timeUpdated ?? b.seenAt ?? 0) - (a.timeUpdated ?? a.seenAt ?? 0));
 }
 
+/**
+ * The build that was live on a date (YYYY-MM-DD, end of that day UTC): the newest known build of the branch
+ * updated on or before it. Null when no known build is that old.
+ */
+export function buildOnDate(builds, date, branch = 'public') {
+  const limit = Date.parse(`${date}T23:59:59Z`) / 1000;
+  if (!Number.isFinite(limit)) return null;
+  const when = (b) => b.timeUpdated ?? b.seenAt ?? 0;
+  return builds
+    .filter((b) => b.branch === branch && when(b) > 0 && when(b) <= limit)
+    .sort((a, b) => when(b) - when(a))[0] ?? null;
+}
+
+const REFIX_REPO = 'https://raw.githubusercontent.com/Coronitaa/ReFix/main';
+const RE_MOD_ID = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+
+let refixModsPromise;
+/** ReFix's mod catalog (refix_mods/catalog.tsv on main) as { id, product, exe }. */
+export const fetchReFixMods = () => (refixModsPromise ??= fetch(`${REFIX_REPO}/refix_mods/catalog.tsv`, { cache: 'no-store' })
+  .then((r) => { if (!r.ok) throw new Error(`GitHub respondió ${r.status}.`); return r.text(); })
+  .then((text) => text.split('\n').map((l) => l.replace(/\r$/, '')).filter((l) => l && !l.startsWith('#'))
+    .map((l) => l.split('\t')).filter((c) => c.length >= 7 && RE_MOD_ID.test(c[0]))
+    .map(([id, product, exe]) => ({ id, product, exe: exe.slice(0, 64) })))
+  .catch((err) => { refixModsPromise = null; throw err; }));
+
+let refixVersionPromise;
+/** Tag of ReFix's latest GitHub release: the version BlueStar's ReFix updater installs. */
+export const fetchReFixVersion = () => (refixVersionPromise ??= fetch('https://api.github.com/repos/Coronitaa/ReFix/releases/latest')
+  .then((r) => (r.ok ? r.json() : null))
+  .then((j) => (typeof j?.tag_name === 'string' && /^v?[0-9][0-9.]{0,15}$/.test(j.tag_name) ? j.tag_name : null))
+  .catch(() => null));
+
 let tagsPromise;
 /** Steam tag id → Spanish name (generated from Steam's popular tags list). */
 export const loadTags = () => (tagsPromise ??= fetch('tags.json').then((r) => r.json()).catch(() => ({})));

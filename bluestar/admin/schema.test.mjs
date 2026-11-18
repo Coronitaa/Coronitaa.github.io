@@ -32,4 +32,22 @@ const meta = validateCatalog({ schemaVersion: 1, games: [{ appId: 5, name: 'M', 
 assert.deepEqual(meta.errors, []);
 assert.deepEqual(meta.catalog.games[0].tagIds, [19, 1663]);
 assert.ok(validateCatalog({ schemaVersion: 1, games: [{ appId: 5, name: 'M', logoImageUrl: 'https://evil.example/l.png' }] }).errors.length > 0);
+const rm = (refixMods) => validateCatalog(withPreset({ id: 'p', name: 'P', emulator: { type: 'refix_lan_online' }, refixMods }));
+assert.deepEqual(rm(['refix.csgo.lan_overhaul', 'refix.csgo.lan_overhaul']).catalog.games[0].presets[0].refixMods, ['refix.csgo.lan_overhaul']);
+assert.deepEqual(rm([]).catalog.games[0].presets[0].refixMods, [], 'an empty list means no ReFix mods');
+assert.equal(rm(undefined).catalog.games[0].presets[0].refixMods, undefined);
+for (const v of [['Bad Id'], ['a,b'], [1], 'refix.csgo.lan_overhaul']) assert.ok(rm(v).errors.length > 0, JSON.stringify(v));
+
+const { buildOnDate } = await import('./steam.js');
+const hist = [
+  { branch: 'public', buildId: '3', timeUpdated: Date.parse('2018-08-30T12:00:00Z') / 1000 },
+  { branch: 'public', buildId: '2', timeUpdated: Date.parse('2018-03-07T18:00:00Z') / 1000 },
+  { branch: 'public', buildId: '1', timeUpdated: Date.parse('2018-02-01T00:00:00Z') / 1000 },
+  { branch: 'beta', buildId: '9', timeUpdated: Date.parse('2018-03-08T00:00:00Z') / 1000 },
+];
+assert.equal(buildOnDate(hist, '2018-03-07').buildId, '2', 'a build published later that same day counts');
+assert.equal(buildOnDate(hist, '2018-05-01').buildId, '2');
+assert.equal(buildOnDate(hist, '2018-03-09', 'beta').buildId, '9');
+assert.equal(buildOnDate(hist, '2017-01-01'), null);
+assert.equal(buildOnDate(hist, 'nope'), null);
 console.log('schema ok');

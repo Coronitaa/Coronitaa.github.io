@@ -1,6 +1,6 @@
-import { validateCatalog, EMULATOR_TYPES, steamHeaderUrl, httpsUrl } from './schema.js';
+import { validateCatalog, EMULATOR_TYPES, REFIX_EMULATORS, steamHeaderUrl, httpsUrl } from './schema.js';
 import { GitHubStore, LocalStore, ConflictError } from './github.js';
-import { fetchSteamGame, fetchBuilds, loadTags, loadExploreIndex } from './steam.js';
+import { fetchSteamGame, fetchBuilds, buildOnDate, fetchReFixMods, fetchReFixVersion, loadTags, loadExploreIndex } from './steam.js';
 
 // Refuse to run inside a frame (CSP frame-ancestors cannot be set from a <meta> tag).
 if (window.top !== window.self) throw new Error('framed');
@@ -29,7 +29,7 @@ function h(tag, props = {}, ...children) {
 
 const EMULATOR_LABELS = {
   none: 'Ninguno (Steam original)',
-  refix_lan: 'ReFix LAN',
+  refix_lan: 'ReFix LAN Offline',
   refix_lan_online: 'ReFix LAN + Online',
   refix_online_legacy: 'ReFix Online Legacy',
   onlinefix: 'OnlineFix',
@@ -287,7 +287,7 @@ function renderEditor() {
     preview.src = u ? u.href : steamHeaderUrl(g.appId);
   };
 
-  fill(ed, 
+  fill(ed,
     h('button', { type: 'button', class: 'btn btn-quiet back', text: '← Juegos', onclick: () => { state.selected = null; render(); } }),
     h('div', { class: 'editor-head' },
       preview,
@@ -378,7 +378,7 @@ function tagEditor(g) {
           wrap.querySelector('input')?.focus();
         },
       });
-      fill(wrap, 
+      fill(wrap,
         h('label', { text: 'Tags (filtros de Explorar)' }),
         h('div', { class: 'chips' }, (g.tagIds ?? []).map((id) => h('span', { class: 'chip' },
           tags[id] ?? `#${id}`,
@@ -405,8 +405,26 @@ function buildsSection(g) {
       return;
     }
     const fmt = (t) => (t ? new Date(t * 1000).toLocaleDateString('es', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) : 'fecha desconocida');
-    fill(wrap, 
+    const dateId = nextId('bd');
+    const branches = [...new Set(builds.map((b) => b.branch))];
+    const branchSel = h('select', { 'aria-label': 'Rama' }, branches.map((b) => h('option', { value: b, text: b, selected: b === 'public' })));
+    const dateInput = h('input', { id: dateId, type: 'date', max: new Date().toISOString().slice(0, 10) });
+    const byDate = h('form', {
+      class: 'row by-date',
+      onsubmit: (e) => {
+        e.preventDefault();
+        if (!dateInput.value) { toast('Elige una fecha.'); return; }
+        const b = buildOnDate(builds, dateInput.value, branchSel.value);
+        if (!b) { toast(`No hay ningún build conocido de ${branchSel.value} de esa fecha o anterior. Añade los depots del preset a mano.`); return; }
+        addPreset(g, b);
+        toast(`Preset creado con ${b.label ?? `el build ${b.buildId}`} (${fmt(b.timeUpdated ?? b.seenAt)}), el vigente el ${fmt(Date.parse(`${dateInput.value}T00:00:00Z`) / 1000)}.`);
+      },
+    }, h('label', { for: dateId, text: 'Build vigente en la fecha' }), dateInput, branchSel,
+    h('button', { type: 'submit', class: 'btn btn-primary', text: 'Crear preset' }));
+    fill(wrap,
       h('p', { class: 'hint', text: 'Steam solo publica el build actual de cada rama. Los anteriores son los que el panel registra cada hora y, para juegos antiguos, versiones con manifests publicados por la comunidad. Un preset instala exactamente los depots que fija.' }),
+      byDate,
+      h('p', { class: 'hint', text: 'Se usa el último build conocido de la rama publicado ese día o antes. Si hubo builds entre dos registrados, el panel no los conoce y elige el anterior más cercano.' }),
       h('ul', { class: 'build-list' }, builds.map((b) => h('li', { class: 'build-row' },
         h('span', { class: 'game-meta' },
           h('span', { class: 'game-name', text: `${b.label ? b.label : `Build ${b.buildId}${b.live ? ' · actual' : ''}`}${b.verified ? ' · verificado' : ''}` }),
@@ -495,7 +513,7 @@ function pairTable(owner, key, [kLabel, vLabel], emptyText) {
     changed();
   };
   const draw = () => {
-    fill(wrap, 
+    fill(wrap,
       rows.length === 0 ? h('p', { class: 'empty', text: emptyText }) : null,
       ...rows.map((r, i) => h('div', { class: 'pair' },
         h('input', { class: 'mono', value: r.k, placeholder: kLabel, 'aria-label': kLabel, oninput: (e) => { r.k = e.target.value; sync(); } }),
@@ -551,18 +569,58 @@ function emulatorEditor(p) {
           const type = ev.target.value;
           for (const k of Object.keys(e)) delete e[k];
           e.type = type;
-          custom.hidden = type !== 'custom';
           changed();
-          if (type === 'custom') renderEditor();
+          renderEditor();
         },
       }, EMULATOR_TYPES.map((t) => h('option', { value: t, text: EMULATOR_LABELS[t], selected: t === e.type })))),
-    custom);
+    custom,
+    REFIX_EMULATORS.includes(e.type) ? refixSection(p) : null);
+}
+
+/** What a ReFix preset brings: the ReFix version BlueStar installs, portable libraries and ReFix's own mods. */
+function refixSection(p) {
+  const version = h('p', { class: 'hint' });
+  const describe = (tag) => {
+    version.textContent = `BlueStar instala la última versión publicada de ReFix${tag ? ` (${tag})` : ''} y deja junto al juego las librerías de DirectX que necesita (d3dx9, XAudio2…), sacadas de sus propios redistribuibles, para que funcione portable.`;
+  };
+  describe(null);
+  fetchReFixVersion().then(describe);
+  const mods = h('div', { class: 'refix-mods' }, h('p', { class: 'empty', text: 'Cargando mods de ReFix…' }));
+  const group = nextId('rm');
+  const draw = (catalog) => {
+    const auto = p.refixMods == null;
+    const radio = (label, checked, onchange) => h('label', { class: 'switch' },
+      h('input', { type: 'radio', name: group, checked, onchange }), h('span', { text: label }));
+    const known = new Set(catalog.map((m) => m.id));
+    const unknown = (p.refixMods ?? []).filter((id) => !known.has(id));
+    fill(mods,
+      h('h3', { text: 'Mods de ReFix' }),
+      radio('Los que ReFix elija para este juego (por defecto)', auto, () => { delete p.refixMods; changed(); draw(catalog); }),
+      radio('Solo los marcados', !auto, () => { p.refixMods = []; changed(); draw(catalog); }),
+      auto ? null : h('div', { class: 'refix-mod-list' },
+        catalog.length === 0 ? h('p', { class: 'empty', text: 'El catálogo de mods de ReFix está vacío.' }) : null,
+        catalog.map((m) => h('label', { class: 'switch' },
+          h('input', {
+            type: 'checkbox', checked: p.refixMods.includes(m.id),
+            onchange: (e) => {
+              p.refixMods = e.target.checked ? [...p.refixMods, m.id] : p.refixMods.filter((x) => x !== m.id);
+              changed();
+              draw(catalog);
+            },
+          }),
+          h('span', { text: `${m.id} · ${m.exe} · ReFix ${m.product === 'any' ? 'cualquiera' : m.product}` }))),
+        p.refixMods.length === 0 ? h('p', { class: 'hint', text: 'Sin ninguno marcado, la instalación no lleva mods de ReFix.' }) : null,
+        unknown.length ? h('p', { class: 'error', text: `No están en el catálogo de ReFix: ${unknown.join(', ')}. ReFix los ignorará.` }) : null),
+      h('p', { class: 'hint', text: 'Cada mod se instala solo si su fila del catálogo (refix_mods/catalog.tsv) coincide con el juego y con el producto de ReFix.' }));
+  };
+  fetchReFixMods().then(draw).catch((err) => fill(mods, h('p', { class: 'error', text: `No se pudo leer el catálogo de mods de ReFix: ${err.message}` })));
+  return h('div', {}, version, mods);
 }
 
 function modsEditor(p) {
   p.mods ??= [];
   const wrap = h('div', { class: 'mods' });
-  const draw = () => fill(wrap, 
+  const draw = () => fill(wrap,
     p.mods.length === 0 ? h('p', { class: 'empty', text: 'Sin mods.' }) : null,
     ...p.mods.map((m, i) => h('div', { class: 'mod grid' },
       field('Nombre', m, 'name'),
@@ -593,6 +651,8 @@ function normalized() {
       for (const p of g.presets) {
         if (p.mods) p.mods = p.mods.filter((m) => Object.keys(m).length);
         if (!p.mods?.length) delete p.mods;
+        // Only ReFix installs ReFix's mods.
+        if (!REFIX_EMULATORS.includes(p.emulator?.type)) delete p.refixMods;
       }
       if (!g.presets.length) delete g.presets;
     }

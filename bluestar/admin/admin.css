@@ -202,3 +202,7 @@ img:not([src]) { visibility: hidden; }
 .build-list { display: grid; gap: 4px; width: 100%; }
 .build-row, .explore-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid var(--line); }
 .build-row .game-meta, .explore-row .game-meta { flex: 1; }
+.by-date { flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 4px; }
+.by-date label { width: 100%; margin: 0; }
+.by-date input, .by-date select { width: auto; }
+.refix-mod-list { display: grid; gap: 6px; margin: 6px 0 4px 28px; }

@@ -18,6 +18,9 @@ const RE_DIGITS = /^[0-9]{1,20}$/;
 const RE_SHA = /^[0-9a-f]{64}$/;
 const RE_KEY = /^[A-Za-z0-9_.-]{1,64}$/;
 const RE_SEGMENT = /^[A-Za-z0-9 _.()+-]{1,64}$/;
+// ReFix mod ids (refixmod.json "id"); no commas, BlueStar passes them to ReFix as a comma-separated list.
+export const RE_REFIX_MOD = /^[a-z0-9][a-z0-9._-]{0,63}$/;
+export const REFIX_EMULATORS = ['refix_lan', 'refix_lan_online', 'refix_online_legacy'];
 const U32_MAX = 4294967295n;
 const U64_MAX = 18446744073709551615n;
 
@@ -147,11 +150,22 @@ function validatePreset(p, appId, errors) {
     mods.push(dl);
   }
 
+  // Absent = ReFix installs the catalog mod that matches the game; [] = none; a list = only those.
+  let refixMods;
+  if (p.refixMods != null) {
+    if (!Array.isArray(p.refixMods) || p.refixMods.length > 50 || !p.refixMods.every((m) => typeof m === 'string' && RE_REFIX_MOD.test(m))) {
+      errors.push(`${where}: id de mod de ReFix inválido`);
+      return null;
+    }
+    refixMods = [...new Set(p.refixMods)];
+  }
+
   const out = { id: p.id, name, branch };
   if (p.buildId) out.buildId = p.buildId;
   if (entries.length) out.manifests = manifests;
   out.emulator = emulator;
   if (mods.length) out.mods = mods;
+  if (refixMods) out.refixMods = refixMods;
   const note = clean(p.note, 2000, true);
   if (note) out.note = note;
   return out;
